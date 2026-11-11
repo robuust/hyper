@@ -422,6 +422,11 @@ class HyperField extends Field implements ThumbableFieldInterface, MergeableFiel
         ];
     }
 
+    /**
+     * Validate each embedded link using the owning field layout's requirements.
+     *
+     * @param ElementInterface $element the owner being validated
+     */
     public function validateBlocks(ElementInterface $element): void
     {
         $scenario = $element->getScenario();
@@ -436,7 +441,7 @@ class HyperField extends Field implements ThumbableFieldInterface, MergeableFiel
             $link->setScenario($scenario);
 
             // Set a flag whether the Hyper field itself is required
-            $link->isFieldRequired = $this->required;
+            $link->isFieldRequired = $this->layoutElement->required;
 
             if (!$link->validate()) {
                 $element->addModelErrors($link, "{$this->handle}[{$i}]");
