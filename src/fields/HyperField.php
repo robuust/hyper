@@ -13,6 +13,7 @@ use verbb\hyper\models\LinkCollection;
 use verbb\hyper\services\Links;
 
 use Craft;
+use CraftCms\Cms\Asset\Enums\ImageTransformMode;
 use craft\base\Element;
 use craft\base\ElementInterface;
 use craft\base\Field;
@@ -39,6 +40,9 @@ use Throwable;
 
 use GraphQL\Type\Definition\Type;
 
+/**
+ * Stores and renders configurable links through the Craft Yii compatibility adapter.
+ */
 class HyperField extends Field implements ThumbableFieldInterface, MergeableFieldInterface, PreviewableFieldInterface
 {
     // Static Methods
@@ -187,7 +191,16 @@ class HyperField extends Field implements ThumbableFieldInterface, MergeableFiel
         return $value ? $this->_renderLink($value) : '';
     }
 
-    public function getThumbHtml(mixed $value, ElementInterface $element, int $size): ?string
+    /**
+     * Render a link preview using Craft 6's thumbnail contract.
+     *
+     * @param mixed $value the normalized links
+     * @param ElementInterface $element the owning element
+     * @param int $size the requested thumbnail size
+     * @param ImageTransformMode $mode the requested image sizing mode
+     * @return string|null the link preview
+     */
+    public function getThumbHtml(mixed $value, ElementInterface $element, int $size, ImageTransformMode $mode = ImageTransformMode::Fit): ?string
     {
         return $value ? $this->_renderLink($value) : '';
     }

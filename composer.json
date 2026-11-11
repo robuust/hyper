@@ -2,7 +2,6 @@
     "name": "verbb/hyper",
     "description": "A Craft CMS field for creating consistent links and calls to action.",
     "type": "craft-plugin",
-    "version": "2.3.18",
     "keywords": [
         "craft",
         "cms",
@@ -25,11 +24,12 @@
         }
     ],
     "require": {
-        "php": "^8.2",
-        "craftcms/cms": "^5.0.0",
+        "php": "^8.5",
+        "craftcms/cms": "6.0.0-beta.1",
         "embed/embed": "^3.0.0 || ^4.0.0",
-        "nystudio107/craft-plugin-vite": "^5.0.0",
-        "verbb/base": "^3.0.20"
+        "nystudio107/craft-plugin-vite": "dev-feature/craft6-beta1-compatibility",
+        "verbb/base": "dev-feature/craft-6-beta",
+        "craftcms/yii2-adapter": "6.0.0-beta.1"
     },
     "autoload": {
         "psr-4": {
