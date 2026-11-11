@@ -35,6 +35,17 @@
 {# Native element selects don't record the chosen site id, so we add that handling here #}
 {% js %}
 
-new Craft.Hyper.ElementSelect('#{{ selectId | namespaceInputId }}', '#{{ siteId | namespaceInputId }}')
+{
+    /** Initialize after the Hyper module has registered its legacy input classes. */
+    const initHyperElementSelect = () => {
+        new Craft.Hyper.ElementSelect('#{{ selectId | namespaceInputId }}', '#{{ siteId | namespaceInputId }}');
+    };
+
+    if (Craft.Hyper?.ElementSelect) {
+        initHyperElementSelect();
+    } else {
+        document.addEventListener('hyper-ready', initHyperElementSelect, { once: true });
+    }
+}
 
 {% endjs %}

@@ -57,6 +57,17 @@
 
 {% js %}
 
-new Craft.Hyper.Embed('#{{ fieldId | namespaceInputId }}');
+{
+    /** Initialize after the Hyper module has registered its legacy input classes. */
+    const initHyperEmbed = () => {
+        new Craft.Hyper.Embed('#{{ fieldId | namespaceInputId }}');
+    };
+
+    if (Craft.Hyper?.Embed) {
+        initHyperEmbed();
+    } else {
+        document.addEventListener('hyper-ready', initHyperEmbed, { once: true });
+    }
+}
 
 {% endjs %}

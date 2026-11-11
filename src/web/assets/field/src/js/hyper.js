@@ -204,6 +204,8 @@ Craft.Hyper.Embed = Garnish.Base.extend({
 });
 
 
+document.dispatchEvent(new CustomEvent('hyper-ready'));
+
 $(document).ready(() => {
     Craft.Hyper.mountAll(document);
     Craft.Hyper.startAutoMountObserver();

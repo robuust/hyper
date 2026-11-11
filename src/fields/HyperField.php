@@ -14,6 +14,7 @@ use verbb\hyper\services\Links;
 
 use Craft;
 use CraftCms\Cms\Image\Enums\ImageTransformMode;
+use CraftCms\Cms\Support\Facades\InputNamespace;
 use craft\base\Element;
 use craft\base\ElementInterface;
 use craft\base\Field;
@@ -766,6 +767,13 @@ class HyperField extends Field implements ThumbableFieldInterface, MergeableFiel
         return $preppedValues;
     }
 
+    /**
+     * Render an embedded link with one native field layout namespace.
+     *
+     * @param View $view the active compatibility view
+     * @param LinkInterface $link the embedded link whose first tab is rendered
+     * @return string the native field layout HTML
+     */
     private function _getBlockHtml(View $view, LinkInterface $link): string
     {
         if ($link instanceof linkTypes\MissingLink) {
@@ -798,11 +806,11 @@ class HyperField extends Field implements ThumbableFieldInterface, MergeableFiel
             $linkValueField->field = $this;
             $linkValueField->link = $link;
 
-            $form = $fieldLayout->createForm($link);
+            $namespace = $view->getNamespace() ?? [];
 
-            // Note: we can't just wrap FieldLayoutForm::render() in a callable passed to namespaceInputs() here,
-            // because the form HTML is for JavaScript; not returned by inputHtml().
-            return $view->namespaceInputs($form->render());
+            return InputNamespace::with(null, fn(): string => $fieldLayout
+                ->createForm($link, false, ['namespace' => $namespace])
+                ->render());
         } catch (Throwable $e) {
             $error = Craft::t('hyper', 'Unable to render field - {message} {file}:{line}', [
                 'message' => $e->getMessage(),
