@@ -588,6 +588,14 @@ class HyperField extends Field implements ThumbableFieldInterface, MergeableFiel
         ];
     }
 
+    /**
+     * Render link editors while keeping transient control IDs out of the submitted value.
+     *
+     * @param mixed $value the normalized link collection
+     * @param ElementInterface|null $element the owning element
+     * @param bool $inline whether the field is rendered inline
+     * @return string the field input HTML
+     */
     protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {
         $view = Craft::$app->getView();
@@ -631,6 +639,7 @@ class HyperField extends Field implements ThumbableFieldInterface, MergeableFiel
         $value = $this->_getLinksForInput($value, $placeholderKey);
 
         $valueResources = [];
+        $storeValues = [];
 
         // Extract HTML/JS for each link block and provide separately
         foreach ($value as $k => &$v) {
@@ -638,6 +647,8 @@ class HyperField extends Field implements ThumbableFieldInterface, MergeableFiel
                 'html' => ArrayHelper::remove($v, 'html'),
                 'js' => ArrayHelper::remove($v, 'js'),
             ];
+            $storeValues[$k] = $v;
+            unset($storeValues[$k]['id'], $storeValues[$k]['isNew']);
         }
 
         // Register Hyper assets; roots are mounted automatically by hyper.js.
@@ -652,6 +663,7 @@ class HyperField extends Field implements ThumbableFieldInterface, MergeableFiel
 
             // Prevent nested JSON content from being escaped, and don't encode special characters
             'value' => Json::encode($value, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
+            'storeValue' => Json::encode($storeValues, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
             'valueResources' => Json::encode($valueResources, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
             'settings' => Json::encode($settings, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
         ]);

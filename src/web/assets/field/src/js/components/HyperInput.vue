@@ -250,6 +250,12 @@ export default {
     },
 
     methods: {
+        /**
+         * Publish serialized content changes to Craft's native form state.
+         *
+         * @param {Array<Object>} value The current links.
+         * @param {boolean} force Whether this change was an explicit edit.
+         */
         syncValueToStore(value, force = false) {
             // Don't update the DOM until the field is fully rendered.
             if (!this.rendered || !this.$el) {
@@ -279,6 +285,10 @@ export default {
             }
 
             this.lastSerializedValue = updatedValue;
+
+            if ($dataStore) {
+                $dataStore.dispatchEvent(new Event('input', { bubbles: true }));
+            }
         },
 
         forceSyncValueToStore() {
@@ -574,6 +584,12 @@ export default {
             }
         },
 
+        /**
+         * Serialize content without the transient identifiers used to mount controls.
+         *
+         * @param {Array<Object>} value The current link values.
+         * @returns {string} The stable submitted JSON value.
+         */
         serializeValue(value) {
             // Ensure that we normalize this object first, to ensure it's consistent with PHP-JSON notation
             // Parse original value to use as reference for type comparison
@@ -581,9 +597,15 @@ export default {
 
             // Normalize current value against original reference
             const normalized = normalizeJson(value, original);
+            const serialized = normalized.map((link) => {
+                const content = { ...link };
+                delete content.id;
+                delete content.isNew;
+                return content;
+            });
 
             // Serialize normalized output
-            return JSON.stringify(normalized);
+            return JSON.stringify(serialized);
         },
     },
 };

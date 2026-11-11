@@ -19,9 +19,9 @@
         {# Render here so that ElementEditor.js doesn't detect a change from server-render to when Vue kicks in #}
         {% if isDebug %}
             <div class="input text" style="margin-bottom: 20px;">{{ value }}</div>
-            <div data-store-debug class="input text" style="margin-bottom: 20px;">{{ value }}</div>
+            <div data-store-debug class="input text" style="margin-bottom: 20px;">{{ storeValue }}</div>
         {% endif %}
 
-        <input data-store type="hidden" name="{{ name }}" value="{{ value }}">
+        <input data-store type="hidden" name="{{ name }}" value="{{ storeValue }}">
     </hyper-input>
 </div>
