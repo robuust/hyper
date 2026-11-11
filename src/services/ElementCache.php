@@ -6,6 +6,7 @@ use verbb\hyper\fields\HyperField;
 use verbb\hyper\records\ElementCache as ElementCacheRecord;
 
 use Craft;
+use CraftCms\Cms\Support\Facades\Updates;
 use craft\base\Component;
 use craft\base\ElementInterface;
 use craft\db\Query;
@@ -14,6 +15,9 @@ use craft\events\ElementEvent;
 use craft\helpers\Db;
 use craft\helpers\ElementHelper;
 
+/**
+ * Keeps cached Hyper element links synchronized with their targets.
+ */
 class ElementCache extends Component
 {
     // Constants
@@ -26,10 +30,15 @@ class ElementCache extends Component
     // Public Methods
     // =========================================================================
 
+    /**
+     * Refresh cached links after an existing element is saved.
+     *
+     * @param ElementEvent $event the element save event
+     */
     public function onSaveElement(ElementEvent $event): void
     {
         // Skip this when updating Craft is currently in progress
-        if (Craft::$app->getUpdates()->getAreMigrationsPending()) {
+        if (Updates::areMigrationsPending()) {
             return;
         }
 
