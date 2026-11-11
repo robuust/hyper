@@ -395,6 +395,32 @@ class HyperField extends Field implements ThumbableFieldInterface, MergeableFiel
         ];
     }
 
+    /**
+     * Validate stored links through Craft 6's element field rules.
+     *
+     * @param ElementInterface $element the element being validated
+     * @return array<\Closure> callbacks validating this field's links
+     */
+    public function getElementRules(ElementInterface $element): array
+    {
+        return [
+            /**
+             * Apply the existing link validation and expose its errors to Laravel.
+             *
+             * @param string $attribute the owner field handle
+             * @param mixed $value the normalized links
+             * @param \Closure $fail the validation failure callback
+             */
+            function (string $attribute, mixed $value, \Closure $fail) use ($element): void {
+                $this->validateBlocks($element);
+
+                foreach ($element->errors()->get($this->handle) as $error) {
+                    $fail($error);
+                }
+            },
+        ];
+    }
+
     public function validateBlocks(ElementInterface $element): void
     {
         $scenario = $element->getScenario();
@@ -528,14 +554,32 @@ class HyperField extends Field implements ThumbableFieldInterface, MergeableFiel
     // Protected Methods
     // =========================================================================
 
-    protected function defineRules(): array
+    /**
+     * Validate Hyper settings using Craft 6's Laravel validation contract.
+     *
+     * @return array<string, mixed> field settings validation rules
+     */
+    public function getRules(): array
     {
-        $rules = parent::defineRules();
-
-        $rules[] = [['minLinks', 'maxLinks'], 'integer', 'min' => 0];
-        $rules[] = ['linkTypes', 'validateLinkTypes'];
-
-        return $rules;
+        return [
+            ...parent::getRules(),
+            'minLinks' => ['nullable', 'integer', 'min:0'],
+            'maxLinks' => ['nullable', 'integer', 'min:0'],
+            'linkTypes' => [
+                /**
+                 * Reject settings without an enabled link type.
+                 *
+                 * @param string $attribute the validated attribute
+                 * @param mixed $value the configured link types
+                 * @param \Closure $fail the validation failure callback
+                 */
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if (!array_filter(ArrayHelper::getColumn($this->getLinkTypes(), 'enabled'))) {
+                        $fail(Craft::t('hyper', 'You must enable at least one link type.'));
+                    }
+                },
+            ],
+        ];
     }
 
     protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string

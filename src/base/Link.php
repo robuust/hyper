@@ -23,7 +23,12 @@ use craft\models\FieldLayout;
 use craft\models\FieldLayoutTab;
 
 use Twig\Markup;
+use yii\validators\Validator;
+use Illuminate\Validation\ValidationException;
 
+/**
+ * Represents an embedded link while retaining the Hyper 2 content format.
+ */
 abstract class Link extends Element implements LinkInterface
 {
     // Constants
@@ -159,11 +164,14 @@ abstract class Link extends Element implements LinkInterface
     // Public Methods
     // =========================================================================
 
-    public function init(): void
+    /**
+     * Initialize an embedded link after Craft configures its properties.
+     *
+     * @param array<string, mixed> $config the stored link configuration
+     */
+    public function __construct($config = [])
     {
-        parent::init();
-
-        // Needed to override the element title
+        parent::__construct($config);
         $this->title = $this->linkTitle;
     }
 
@@ -182,8 +190,19 @@ abstract class Link extends Element implements LinkInterface
         return get_object_vars($this);
     }
 
+    /**
+     * Preserve Craft's compatibility macros before resolving optional link fields.
+     *
+     * @param string $name the requested method
+     * @param array<mixed> $params the method arguments
+     * @return mixed the macro result or optional field value
+     */
     public function __call($name, $params): mixed
     {
+        if (static::hasMacro($name)) {
+            return parent::__call($name, $params);
+        }
+
         // Prevent a hard error being thrown when referencing a property that might not exist. This helps templating be leaner
         // for custom fields that might be existing for one link type, but not another. Rather than throwing a heap of conditionals
         // around the link type in Twig, just return null if not found.
@@ -213,12 +232,33 @@ abstract class Link extends Element implements LinkInterface
         return $this instanceof ElementLink;
     }
 
-    public function scenarios(): array
+    /**
+     * Validate embedded links with their existing Yii rules and active scenario.
+     *
+     * @param array<string>|string|null $attributeNames the attributes to validate
+     * @param bool $clearErrors whether to discard previous errors
+     * @param bool $throw whether invalid values should raise a validation exception
+     * @return bool whether all selected attributes are valid
+     */
+    public function validate(array|string|null $attributeNames = null, bool $clearErrors = true, bool $throw = false): bool
     {
-        $scenarios = parent::scenarios();
-        $scenarios[self::SCENARIO_SETTINGS] = [];
+        parent::validate($attributeNames, $clearErrors, false);
+        $scenario = $this->ruleset->getScenario();
+        $attributes = is_string($attributeNames) ? [$attributeNames] : $attributeNames;
 
-        return $scenarios;
+        foreach ($this->defineRules() as $rule) {
+            $validator = Validator::createValidator($rule[1], $this, (array) $rule[0], array_slice($rule, 2, null, true));
+
+            if ($validator->isActive($scenario)) {
+                $validator->validateAttributes($this, $attributes);
+            }
+        }
+
+        if ($throw && $this->hasErrors()) {
+            throw ValidationException::withMessages($this->getErrors());
+        }
+
+        return !$this->hasErrors();
     }
 
     public function getSettingsConfig(): array
@@ -616,9 +656,14 @@ abstract class Link extends Element implements LinkInterface
     // Protected Methods
     // =========================================================================
 
+    /**
+     * Define the existing Hyper link validation rules.
+     *
+     * @return array<array<mixed>> Yii validation rules for the link and its layout
+     */
     protected function defineRules(): array
     {
-        $rules = parent::defineRules();
+        $rules = [];
 
         $rules[] = [['label', 'handle', 'enabled', 'newWindow', 'linkValue', 'linkText', 'ariaLabel', 'urlSuffix', 'linkTitle', 'classes', 'customAttributes'], 'safe'];
 
