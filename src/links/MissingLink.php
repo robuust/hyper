@@ -5,6 +5,9 @@ use verbb\hyper\base\Link;
 
 use Craft;
 
+/**
+ * Preserves stored link values whose link type is unavailable.
+ */
 class MissingLink extends Link
 {
     // Static Methods
@@ -33,7 +36,8 @@ class MissingLink extends Link
         Craft::configure($this, $config);
     }
 
-    public function __set($name, $value)
+    /** @inheritdoc */
+    public function __set(string $name, mixed $value): void
     {
         // Check if the property exists in the class, if so, set it directly
         if (property_exists($this, $name)) {

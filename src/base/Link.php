@@ -23,6 +23,7 @@ use craft\models\FieldLayout;
 use craft\models\FieldLayoutTab;
 
 use Twig\Markup;
+use Illuminate\Support\HtmlString;
 use yii\validators\Validator;
 use Illuminate\Validation\ValidationException;
 
@@ -596,7 +597,13 @@ abstract class Link extends Element implements LinkInterface
         return $attributes;
     }
 
-    public function getLink(array $attributes = []): ?Markup
+    /**
+     * Render the link using Craft 6's safe HTML return contract.
+     *
+     * @param array<string, mixed> $attributes additional anchor attributes
+     * @return HtmlString|null the anchor markup when the link has a URL
+     */
+    public function getLink(array $attributes = []): ?HtmlString
     {
         if (!$this->getUrl()) {
             return null;
@@ -607,7 +614,7 @@ abstract class Link extends Element implements LinkInterface
 
         $attributes = $this->getLinkAttributes($attributes);
 
-        return Template::raw(Html::tag('a', $text, $attributes));
+        return new HtmlString(Html::tag('a', $text, $attributes));
     }
 
     public function getLinkAttributes(array $attributes = [], bool $asString = false): array|Markup
