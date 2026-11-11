@@ -13,7 +13,7 @@ use verbb\hyper\models\LinkCollection;
 use verbb\hyper\services\Links;
 
 use Craft;
-use CraftCms\Cms\Asset\Enums\ImageTransformMode;
+use CraftCms\Cms\Image\Enums\ImageTransformMode;
 use craft\base\Element;
 use craft\base\ElementInterface;
 use craft\base\Field;
